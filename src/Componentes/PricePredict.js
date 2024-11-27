@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Box, Grid, Typography } from '@mui/material';
 
 function PricePredict() {
-  const [price, setPrice] = useState(42.50); // Exemplo de valor de preço inicial
 
   return (
     <Grid item xs={12}>
@@ -33,7 +32,7 @@ function PricePredict() {
           fontWeight="bold"
           sx={{ color: '#1976D2' }}
         >
-          R$ {price.toFixed(2)} reais
+          R$ {' '} reais
         </Typography>
       </Box>
     </Grid>
