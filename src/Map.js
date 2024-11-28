@@ -9,9 +9,6 @@ const Map = ({ coordinates, setAddress, setFinalAddress, setDialogFields, setDia
   const startMarkerRef = useRef(null);    // Ref para o marcador de origem
   const endMarkerRef = useRef(null);      // Ref para o marcador de destino
 
-  useEffect(() => {
-    console.log(coordinates);
-  }, []);
 
   const parseAddress = (address) => {
     const addressParts = address.split(', ');
