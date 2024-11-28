@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './App.css';
 import Map from './Map';
 import {
@@ -11,6 +11,27 @@ import PricePredict from './Componentes/PricePredict';
 import Simulator from './Componentes/Simulator';
 
 function App() {
+  const [coordinates, setCoordinates] = useState({ origin: null, destination: null });
+  const [address, setAddress] = useState('');
+  const [finalAddress, setFinalAddress] = useState('');
+  const [dialogFields, setDialogFields] = useState({
+    street: '',
+    city: '',
+    state: '',
+    neighborhood: '',
+    houseNumber: '',
+    country: '',
+  });
+  const [dialogFinalFields, setDialogFinalFields] = useState({
+    street: '',
+    city: '',
+    state: '',
+    neighborhood: '',
+    houseNumber: '',
+    country: '',
+  });
+
+
   return (
     <div
       style={{
@@ -49,8 +70,8 @@ function App() {
               backgroundColor: '#fff',
             }}
           >
-            <Map/>
-          </Box>
+          <Map coordinates={coordinates} address={address} setAddress={setAddress} finalAddress={finalAddress} setFinalAddress={setFinalAddress} dialogFields={dialogFields} setDialogFields={setDialogFields} dialogFinalFields={dialogFinalFields} setDialogFinalFields={setDialogFinalFields}  />
+        </Box>
         </Grid>
         <Grid item xs={12} md={6}>
           <Box
@@ -63,7 +84,7 @@ function App() {
               flexDirection: 'column',
             }}
           >
-          <Simulator/>
+          <Simulator coordinates={coordinates} setCoordinates={setCoordinates} address={address} setAddress={setAddress} finalAddress={finalAddress} setFinalAddress={setFinalAddress} dialogFields={dialogFields} setDialogFields={setDialogFields} dialogFinalFields={dialogFinalFields} setDialogFinalFields={setDialogFinalFields} />
           <PricePredict/>
           </Box>
         </Grid>

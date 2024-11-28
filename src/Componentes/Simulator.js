@@ -1,16 +1,92 @@
 import React, { useState } from 'react';
-import {Box,Grid,TextField,Button,Typography,InputAdornment,} from '@mui/material';
+import {
+  Box,
+  Grid,
+  TextField,
+  Button,
+  Typography,
+  InputAdornment,
+
+} from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import LocalidadeFilter from '../LocalidadeFilter';
+import axios from 'axios';
+import AddressDialog from './AddressDialog';
 
-function Simulator() {
-  const [address, setAddress] = useState('');
-  const [finalAddress, setFinalAddress] = useState('');
+function Simulator({coordinates, setCoordinates,address, setAddress,finalAddress, setFinalAddress,dialogFields, setDialogFields,dialogFinalFields, setDialogFinalFields}) {
 
-  const handleAddressSubmit = () => {
-    console.log('Endereço enviado:', address);
-    console.log('Endereço final:', finalAddress);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogFinalOpen, setDialogFinalOpen] = useState(false);
+  const [isOrigin, setIsOrigin] = useState(true);
+
+
+  const handleDialogOpen = (isOriginAddress) => {
+    setIsOrigin(isOriginAddress);
+    setDialogOpen(true);
+  };
+
+  const handleDialogFinalOpen = (isOriginAddress) => {
+    setIsOrigin(isOriginAddress);
+    setDialogFinalOpen(true);
+  };
+
+  const geocodeAddress = async (address) => {
+    if(address === '') {
+      alert('Digite um endereço');
+      return null;
+    }
+    try {
+      const apiKey = 'AIzaSyAVeHeLlZpHTRW5PHirwQkDBc3yCg3rN94'; // Substitua pela sua chave de API
+      const response = await axios.get(
+        `https://maps.googleapis.com/maps/api/geocode/json`,
+        {
+          params: {
+            address: address,
+            key: apiKey,
+          },
+        }
+      );
+      if (response.data.results.length > 0) {
+        const { lat, lng } = response.data.results[0].geometry.location;
+        return { lat, lng };
+      } else {
+        alert('Endereço não encontrado');
+        return null;
+      }
+    } catch (error) {
+      console.error('Erro ao geocodificar endereço:', error);
+      alert('Erro ao geocodificar endereço.');
+      return null;
+    }
+  };
+
+  const handleAddressSubmit = async () => {
+    const originCoords = await geocodeAddress(address);
+    const destinationCoords = await geocodeAddress(finalAddress);
+
+    if(originCoords === null || destinationCoords === null) { 
+      return
+    }
+
+    if (originCoords && destinationCoords) {
+      setCoordinates({
+        origin: originCoords,
+        destination: destinationCoords,
+      });
+      console.log('Coordenadas:', {
+        origin: originCoords,
+        destination: destinationCoords,
+      });
+    }
+
+    const routeData = {
+      latOrigin: originCoords.lat,
+      lngOrigin: originCoords.lng,
+      latDest: destinationCoords.lat,
+      lngDest: destinationCoords.lng,
+    };
+    console.log(routeData);
+    
   };
 
   return (
@@ -38,11 +114,11 @@ function Simulator() {
         </Typography>
         <Box sx={{ width: '100%' }}>
           <TextField
-            label="Digite o endereço de partida"
+            label="Endereço de partida"
             variant="outlined"
             fullWidth
             value={address}
-            onChange={(e) => setAddress(e.target.value)}
+            onClick={() => handleDialogOpen(true)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -53,11 +129,11 @@ function Simulator() {
             sx={{ mb: 2 }}
           />
           <TextField
-            label="Digite o endereço de chegada"
+            label="Endereço de chegada"
             variant="outlined"
             fullWidth
             value={finalAddress}
-            onChange={(e) => setFinalAddress(e.target.value)}
+            onClick={() => handleDialogFinalOpen(false)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -67,7 +143,6 @@ function Simulator() {
             }}
             sx={{ mb: 2 }}
           />
-          <LocalidadeFilter formData={address} setFormData={setAddress} />
           <Button
             variant="contained"
             color="primary"
@@ -85,6 +160,10 @@ function Simulator() {
           </Button>
         </Box>
       </Box>
+      <AddressDialog setAddress={setAddress} dialogOpen={dialogOpen} setDialogOpen={setDialogOpen} isOrigin={isOrigin} dialogFields={dialogFields} setDialogFields={setDialogFields} />
+      <AddressDialog setAddress={setFinalAddress} dialogOpen={dialogFinalOpen} setDialogOpen={setDialogFinalOpen} isOrigin={isOrigin}  dialogFields={dialogFinalFields} setDialogFields={setDialogFinalFields}/>
+
+     
     </Grid>
   );
 }
