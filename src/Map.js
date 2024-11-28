@@ -2,9 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine';
-import { Stream } from '@mui/icons-material';
 
-const Map = ({ coordinates, setAddress, setFinalAddress,dialogFields, setDialogFields,dialogFinalFields, setDialogFinalFields  }) => {
+const Map = ({ coordinates, setAddress, setFinalAddress, setDialogFields, setDialogFinalFields  }) => {
   const mapRef = useRef(null);
   const routingControlRef = useRef(null); // Ref para persistir o controle de roteamento
   const startMarkerRef = useRef(null);    // Ref para o marcador de origem
