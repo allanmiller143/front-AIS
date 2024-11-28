@@ -117,7 +117,7 @@ const Map = ({ coordinates, setAddress, setFinalAddress, setDialogFields, setDia
 
     // Cleanup do mapa
     return () => map.remove();
-  }, []);
+  }, [ setAddress, setFinalAddress, setDialogFields, setDialogFinalFields ]);
 
   useEffect(() => {
     if (coordinates.origin && coordinates.destination) {
