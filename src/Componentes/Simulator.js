@@ -160,7 +160,7 @@ function Simulator({coordinates, setCoordinates,address, setAddress,finalAddress
           </Button>
         </Box>
       </Box>
-      <AddressDialog setAddress={setAddress} dialogOpen={dialogOpen} setDialogOpen={setDialogOpen} isOrigin={isOrigin} dialogFields={dialogFields} setDialogFields={setDialogFields} />
+      <AddressDialog  setAddress={setAddress} dialogOpen={dialogOpen} setDialogOpen={setDialogOpen} isOrigin={isOrigin} dialogFields={dialogFields} setDialogFields={setDialogFields} />
       <AddressDialog setAddress={setFinalAddress} dialogOpen={dialogFinalOpen} setDialogOpen={setDialogFinalOpen} isOrigin={isOrigin}  dialogFields={dialogFinalFields} setDialogFields={setDialogFinalFields}/>
 
      

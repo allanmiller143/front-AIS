@@ -14,6 +14,8 @@ function App() {
   const [coordinates, setCoordinates] = useState({ origin: null, destination: null });
   const [address, setAddress] = useState('');
   const [finalAddress, setFinalAddress] = useState('');
+  const [resetTriggered, setResetTriggered] = useState(false);
+
   const [dialogFields, setDialogFields] = useState({
     street: '',
     city: '',
@@ -30,6 +32,9 @@ function App() {
     houseNumber: '',
     country: '',
   });
+
+  const [pricePredict, setPricePredict] = useState(null);
+  const [loading,setLoading] = useState(false);
 
 
   return (
@@ -70,7 +75,7 @@ function App() {
               backgroundColor: '#fff',
             }}
           >
-          <Map coordinates={coordinates} address={address} setAddress={setAddress} finalAddress={finalAddress} setFinalAddress={setFinalAddress} dialogFields={dialogFields} setDialogFields={setDialogFields} dialogFinalFields={dialogFinalFields} setDialogFinalFields={setDialogFinalFields}  />
+          <Map resetTriggered={resetTriggered} setResetTriggered={setResetTriggered}  setLoading  = {setLoading} setPricePredict={setPricePredict} coordinates={coordinates} address={address} setAddress={setAddress} finalAddress={finalAddress} setFinalAddress={setFinalAddress} dialogFields={dialogFields} setDialogFields={setDialogFields} dialogFinalFields={dialogFinalFields} setDialogFinalFields={setDialogFinalFields}   />
         </Box>
         </Grid>
         <Grid item xs={12} md={6}>
@@ -84,8 +89,9 @@ function App() {
               flexDirection: 'column',
             }}
           >
-          <Simulator coordinates={coordinates} setCoordinates={setCoordinates} address={address} setAddress={setAddress} finalAddress={finalAddress} setFinalAddress={setFinalAddress} dialogFields={dialogFields} setDialogFields={setDialogFields} dialogFinalFields={dialogFinalFields} setDialogFinalFields={setDialogFinalFields} />
-          <PricePredict/>
+          <Simulator resetTriggered={resetTriggered} setResetTriggered={setResetTriggered} coordinates={coordinates} setCoordinates={setCoordinates} address={address} setAddress={setAddress} finalAddress={finalAddress} setFinalAddress={setFinalAddress} dialogFields={dialogFields} setDialogFields={setDialogFields} dialogFinalFields={dialogFinalFields} setDialogFinalFields={setDialogFinalFields} />
+
+          <PricePredict loading = {loading} pricePredict={pricePredict}/>
           </Box>
         </Grid>
         

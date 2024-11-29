@@ -1,7 +1,7 @@
 import React from 'react';
-import { Box, Grid, Typography } from '@mui/material';
+import { Box, CircularProgress, Grid, Typography } from '@mui/material';
 
-function PricePredict() {
+function PricePredict({pricePredict,loading}) {
 
   return (
     <Grid item xs={12}>
@@ -26,14 +26,21 @@ function PricePredict() {
         >
           O preço da sua corrida é de:
         </Typography>
-        <Typography
-          variant="h4"
-          component="div"
-          fontWeight="bold"
-          sx={{ color: '#1976D2' }}
-        >
-          R$ {' '} reais
-        </Typography>
+        {
+          pricePredict !== null && (
+            <Typography
+              variant="h4"
+              component="div"
+              fontWeight="bold"
+              sx={{ color: '#1976D2' }}
+            >
+              ${pricePredict.toFixed(2)} Dolares
+            </Typography>
+          )
+        }
+        {
+          loading && <CircularProgress color="primary"></CircularProgress>
+        }
       </Box>
     </Grid>
   );

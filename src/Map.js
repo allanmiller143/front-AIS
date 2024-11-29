@@ -3,7 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine';
 
-const Map = ({ coordinates, setAddress, setFinalAddress, setDialogFields, setDialogFinalFields  }) => {
+const Map = ({ coordinates, setAddress, setFinalAddress, setDialogFields, setDialogFinalFields, setPricePredict,setLoading, }) => {
   const mapRef = useRef(null);
   const routingControlRef = useRef(null); // Ref para persistir o controle de roteamento
   const startMarkerRef = useRef(null);    // Ref para o marcador de origem
@@ -106,12 +106,29 @@ const Map = ({ coordinates, setAddress, setFinalAddress, setDialogFields, setDia
         map.removeLayer(startMarkerRef.current);
         startMarkerRef.current = null;
         setAddress('');
+        setDialogFields({
+          street: '',
+          city: '',
+          state: '',
+          neighborhood: '',
+          houseNumber: '',
+          country: '',
+        });
       }
       if (endMarkerRef.current) {
         map.removeLayer(endMarkerRef.current);
         endMarkerRef.current = null;
         setFinalAddress('');
+        setDialogFinalFields({
+          street: '',
+          city: '',
+          state: '',
+          neighborhood: '',
+          houseNumber: '',
+          country: '',
+        });
       }
+      setPricePredict(null);
       routingControl.setWaypoints([]);
     });
 
@@ -156,8 +173,42 @@ const Map = ({ coordinates, setAddress, setFinalAddress, setDialogFields, setDia
         lngDest: waypoints[1].lng,
       };
       console.log(routeData);
+      postToServer(routeData).then((data) => {
+        console.log('Sucesso:', data);
+        setPricePredict(data.predictedFare);
+      }).catch((err) => {
+        console.error('Erro:', err);
+     });
     }
   };
+
+  async function postToServer(data) {
+    const url = 'http://15.228.36.187:3000';
+    setLoading(true);
+    setPricePredict(null);
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json' // Ajuste conforme necessário
+            },
+            body: JSON.stringify(data) // Converte o objeto para JSON
+        });
+
+        if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+        }
+
+        const responseData = await response.json();
+        console.log('Resposta do servidor:', responseData);
+        return responseData; // Retorna a resposta
+    } catch (error) {
+        console.error('Erro ao fazer o POST:', error.message);
+        throw error;
+    }finally{
+      setLoading(false);
+    }
+}
 
   // Função para obter o endereço com base na latitude e longitude usando o Nominatim
   const getAddress = async (lat, lng) => {
