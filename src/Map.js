@@ -1,13 +1,13 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine';
 
 const Map = ({ coordinates, setAddress, setFinalAddress, setDialogFields, setDialogFinalFields, setPricePredict, setLoading }) => {
   const mapRef = useRef(null);
-  const routingControlRef = useRef(null);
-  const startMarkerRef = useRef(null);
-  const endMarkerRef = useRef(null);
+  const routingControlRef = useRef(null); // Ref para persistir o controle de roteamento
+  const startMarkerRef = useRef(null);    // Ref para o marcador de origem
+  const endMarkerRef = useRef(null);      // Ref para o marcador de destino
 
   const parseAddress = (address) => {
     const addressParts = address.split(', ');
@@ -21,61 +21,61 @@ const Map = ({ coordinates, setAddress, setFinalAddress, setDialogFields, setDia
     return ad;
   };
 
-// Define postToServer before using it in useCallback
-async function postToServer(data) {
-  const url = 'http://15.228.36.187:3000';
-  setLoading(true);
-  setPricePredict(null);
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json', // Adjust if needed
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Erro HTTP: ${response.status}`);
-    }
-
-    const responseData = await response.json();
-    console.log('Resposta do servidor:', responseData);
-    return responseData;
-  } catch (error) {
-    console.error('Erro ao fazer o POST:', error.message);
-    throw error;
-  } finally {
-    setLoading(false);
-  }
-}
-
-// Then, use it inside useCallback
-const updateRoute = useCallback(() => {
-  if (startMarkerRef.current && endMarkerRef.current) {
-    const waypoints = [
-      startMarkerRef.current.getLatLng(),
-      endMarkerRef.current.getLatLng(),
-    ];
-    routingControlRef.current.setWaypoints(waypoints);
-
-    const routeData = {
-      latOrigin: waypoints[0].lat,
-      lngOrigin: waypoints[0].lng,
-      latDest: waypoints[1].lat,
-      lngDest: waypoints[1].lng,
-    };
-    console.log(routeData);
-    postToServer(routeData)
-      .then((data) => {
-        console.log('Sucesso:', data);
-        setPricePredict(data.predictedFare);
-      })
-      .catch((err) => {
-        console.error('Erro:', err);
+  // Função postToServer agora está dentro de useCallback
+  const postToServer = useCallback(async (data) => {
+    const url = 'http://15.228.36.187:3000';
+    setLoading(true);
+    setPricePredict(null);
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
       });
-  }
-}, [setPricePredict]); // No need to include postToServer in the dependency array since it's already defined outside of useCallback
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      console.log('Resposta do servidor:', responseData);
+      return responseData; // Retorna os dados da resposta
+    } catch (error) {
+      console.error('Erro ao fazer o POST:', error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setPricePredict]);
+
+  // Função para atualizar a rota
+  const updateRoute = useCallback(() => {
+    if (startMarkerRef.current && endMarkerRef.current) {
+      const waypoints = [
+        startMarkerRef.current.getLatLng(),
+        endMarkerRef.current.getLatLng(),
+      ];
+      routingControlRef.current.setWaypoints(waypoints);
+
+      const routeData = {
+        latOrigin: waypoints[0].lat,
+        lngOrigin: waypoints[0].lng,
+        latDest: waypoints[1].lat,
+        lngDest: waypoints[1].lng,
+      };
+      console.log(routeData);
+      postToServer(routeData)
+        .then((data) => {
+          console.log('Sucesso:', data);
+          setPricePredict(data.predictedFare);
+        })
+        .catch((err) => {
+          console.error('Erro:', err);
+        });
+    }
+  }, [postToServer, setPricePredict]);
 
   useEffect(() => {
     const defaultIcon = L.icon({
@@ -88,6 +88,7 @@ const updateRoute = useCallback(() => {
     });
 
     const map = L.map(mapRef.current).setView([51.505, -0.09], 5);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
     }).addTo(map);
@@ -95,7 +96,9 @@ const updateRoute = useCallback(() => {
     const routingControl = L.Routing.control({
       waypoints: [],
       routeWhileDragging: true,
-      lineOptions: { styles: [{ color: '#6FA1EC', weight: 4 }] },
+      lineOptions: {
+        styles: [{ color: '#6FA1EC', weight: 4 }],
+      },
       createMarker: () => null,
       router: L.Routing.osrmv1({ suppressWaypoints: true }),
       show: false,
@@ -117,8 +120,11 @@ const updateRoute = useCallback(() => {
         startMarkerRef.current.on('dragend', updateRoute);
 
         const address = await getAddress(lat, lng);
+        console.log(`Origem: ${address}`);
         setAddress(address);
-        setDialogFields(parseAddress(address));
+
+        const addressParts = parseAddress(address);
+        setDialogFields(addressParts);
       } else if (!endMarkerRef.current) {
         endMarkerRef.current = L.marker([lat, lng], { icon: defaultIcon, draggable: true })
           .addTo(map)
@@ -127,10 +133,13 @@ const updateRoute = useCallback(() => {
         endMarkerRef.current.on('dragend', updateRoute);
 
         const address = await getAddress(lat, lng);
+        console.log(`Destino: ${address}`);
         setFinalAddress(address);
-        setDialogFinalFields(parseAddress(address));
 
-        updateRoute(); // Update the route immediately after setting destination
+        const addressParts = parseAddress(address);
+        setDialogFinalFields(addressParts);
+
+        updateRoute();
       }
     });
 
@@ -140,7 +149,12 @@ const updateRoute = useCallback(() => {
         startMarkerRef.current = null;
         setAddress('');
         setDialogFields({
-          street: '', city: '', state: '', neighborhood: '', houseNumber: '', country: '',
+          street: '',
+          city: '',
+          state: '',
+          neighborhood: '',
+          houseNumber: '',
+          country: '',
         });
       }
       if (endMarkerRef.current) {
@@ -148,7 +162,12 @@ const updateRoute = useCallback(() => {
         endMarkerRef.current = null;
         setFinalAddress('');
         setDialogFinalFields({
-          street: '', city: '', state: '', neighborhood: '', houseNumber: '', country: '',
+          street: '',
+          city: '',
+          state: '',
+          neighborhood: '',
+          houseNumber: '',
+          country: '',
         });
       }
       setPricePredict(null);
@@ -161,6 +180,7 @@ const updateRoute = useCallback(() => {
   useEffect(() => {
     if (coordinates.origin && coordinates.destination) {
       const { origin, destination } = coordinates;
+
       if (routingControlRef.current) {
         routingControlRef.current.setWaypoints([
           L.latLng(origin.lat, origin.lng),
@@ -169,11 +189,15 @@ const updateRoute = useCallback(() => {
       }
 
       if (startMarkerRef.current) {
-        startMarkerRef.current.setLatLng([origin.lat, origin.lng]).bindPopup('Origem');
+        startMarkerRef.current.setLatLng([origin.lat, origin.lng]);
+        startMarkerRef.current.bindPopup('Origem');
       }
+
       if (endMarkerRef.current) {
-        endMarkerRef.current.setLatLng([destination.lat, destination.lng]).bindPopup('Destino');
+        endMarkerRef.current.setLatLng([destination.lat, destination.lng]);
+        endMarkerRef.current.bindPopup('Destino');
       }
+
       updateRoute();
     }
   }, [coordinates, updateRoute]);
