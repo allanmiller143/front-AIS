@@ -6,19 +6,18 @@ import {
   Button,
   Typography,
   InputAdornment,
-
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import axios from 'axios';
 import AddressDialog from './AddressDialog';
 
-function Simulator({coordinates, setCoordinates,address, setAddress,finalAddress, setFinalAddress,dialogFields, setDialogFields,dialogFinalFields, setDialogFinalFields}) {
+function Simulator({coordinates, setCoordinates, address, setAddress, finalAddress, setFinalAddress, dialogFields, setDialogFields, dialogFinalFields, setDialogFinalFields, setPricePredict, setLoading}) {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogFinalOpen, setDialogFinalOpen] = useState(false);
   const [isOrigin, setIsOrigin] = useState(true);
-
+  
 
   const handleDialogOpen = (isOriginAddress) => {
     setIsOrigin(isOriginAddress);
@@ -60,12 +59,40 @@ function Simulator({coordinates, setCoordinates,address, setAddress,finalAddress
     }
   };
 
+  const postToServer = async (routeData) => {
+    const url = 'http://15.228.36.187:3000'; // Substitua pela URL do seu servidor
+    setLoading(true);
+    setPricePredict(null);
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(routeData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      console.log('Resposta do servidor:', responseData);
+      setPricePredict(responseData.predictedFare); // Atualiza o estado com o valor da previsão de preço
+    } catch (error) {
+      console.error('Erro ao fazer o POST:', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAddressSubmit = async () => {
     const originCoords = await geocodeAddress(address);
     const destinationCoords = await geocodeAddress(finalAddress);
 
-    if(originCoords === null || destinationCoords === null) { 
-      return
+    if (originCoords === null || destinationCoords === null) {
+      return;
     }
 
     if (originCoords && destinationCoords) {
@@ -77,16 +104,17 @@ function Simulator({coordinates, setCoordinates,address, setAddress,finalAddress
         origin: originCoords,
         destination: destinationCoords,
       });
-    }
 
-    const routeData = {
-      latOrigin: originCoords.lat,
-      lngOrigin: originCoords.lng,
-      latDest: destinationCoords.lat,
-      lngDest: destinationCoords.lng,
-    };
-    console.log(routeData);
-    
+      // Enviar para o servidor para calcular a previsão de preço
+      const routeData = {
+        latOrigin: originCoords.lat,
+        lngOrigin: originCoords.lng,
+        latDest: destinationCoords.lat,
+        lngDest: destinationCoords.lng,
+      };
+
+      await postToServer(routeData); // Envia os dados para o servidor
+    }
   };
 
   return (
@@ -160,10 +188,22 @@ function Simulator({coordinates, setCoordinates,address, setAddress,finalAddress
           </Button>
         </Box>
       </Box>
-      <AddressDialog  setAddress={setAddress} dialogOpen={dialogOpen} setDialogOpen={setDialogOpen} isOrigin={isOrigin} dialogFields={dialogFields} setDialogFields={setDialogFields} />
-      <AddressDialog setAddress={setFinalAddress} dialogOpen={dialogFinalOpen} setDialogOpen={setDialogFinalOpen} isOrigin={isOrigin}  dialogFields={dialogFinalFields} setDialogFields={setDialogFinalFields}/>
-
-     
+      <AddressDialog
+        setAddress={setAddress}
+        dialogOpen={dialogOpen}
+        setDialogOpen={setDialogOpen}
+        isOrigin={isOrigin}
+        dialogFields={dialogFields}
+        setDialogFields={setDialogFields}
+      />
+      <AddressDialog
+        setAddress={setFinalAddress}
+        dialogOpen={dialogFinalOpen}
+        setDialogOpen={setDialogFinalOpen}
+        isOrigin={isOrigin}
+        dialogFields={dialogFinalFields}
+        setDialogFields={setDialogFinalFields}
+      />
     </Grid>
   );
 }

@@ -89,7 +89,7 @@ function App() {
               flexDirection: 'column',
             }}
           >
-          <Simulator resetTriggered={resetTriggered} setResetTriggered={setResetTriggered} coordinates={coordinates} setCoordinates={setCoordinates} address={address} setAddress={setAddress} finalAddress={finalAddress} setFinalAddress={setFinalAddress} dialogFields={dialogFields} setDialogFields={setDialogFields} dialogFinalFields={dialogFinalFields} setDialogFinalFields={setDialogFinalFields} />
+          <Simulator setPricePredict={setPricePredict} setLoading = {setLoading} resetTriggered={resetTriggered} setResetTriggered={setResetTriggered} coordinates={coordinates} setCoordinates={setCoordinates} address={address} setAddress={setAddress} finalAddress={finalAddress} setFinalAddress={setFinalAddress} dialogFields={dialogFields} setDialogFields={setDialogFields} dialogFinalFields={dialogFinalFields} setDialogFinalFields={setDialogFinalFields} />
 
           <PricePredict loading = {loading} pricePredict={pricePredict}/>
           </Box>
