@@ -21,27 +21,61 @@ const Map = ({ coordinates, setAddress, setFinalAddress, setDialogFields, setDia
     return ad;
   };
 
-  // Memoizing the updateRoute function
-  const updateRoute = useCallback(() => {
-    if (startMarkerRef.current && endMarkerRef.current) {
-      const waypoints = [startMarkerRef.current.getLatLng(), endMarkerRef.current.getLatLng()];
-      routingControlRef.current.setWaypoints(waypoints);
+// Define postToServer before using it in useCallback
+async function postToServer(data) {
+  const url = 'http://15.228.36.187:3000';
+  setLoading(true);
+  setPricePredict(null);
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json', // Adjust if needed
+      },
+      body: JSON.stringify(data),
+    });
 
-      const routeData = {
-        latOrigin: waypoints[0].lat,
-        lngOrigin: waypoints[0].lng,
-        latDest: waypoints[1].lat,
-        lngDest: waypoints[1].lng,
-      };
-      console.log(routeData);
-      postToServer(routeData).then((data) => {
+    if (!response.ok) {
+      throw new Error(`Erro HTTP: ${response.status}`);
+    }
+
+    const responseData = await response.json();
+    console.log('Resposta do servidor:', responseData);
+    return responseData;
+  } catch (error) {
+    console.error('Erro ao fazer o POST:', error.message);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+}
+
+// Then, use it inside useCallback
+const updateRoute = useCallback(() => {
+  if (startMarkerRef.current && endMarkerRef.current) {
+    const waypoints = [
+      startMarkerRef.current.getLatLng(),
+      endMarkerRef.current.getLatLng(),
+    ];
+    routingControlRef.current.setWaypoints(waypoints);
+
+    const routeData = {
+      latOrigin: waypoints[0].lat,
+      lngOrigin: waypoints[0].lng,
+      latDest: waypoints[1].lat,
+      lngDest: waypoints[1].lng,
+    };
+    console.log(routeData);
+    postToServer(routeData)
+      .then((data) => {
         console.log('Sucesso:', data);
         setPricePredict(data.predictedFare);
-      }).catch((err) => {
+      })
+      .catch((err) => {
         console.error('Erro:', err);
       });
-    }
-  }, [setPricePredict]); // Dependencies: only needs setPricePredict to trigger updateRoute.
+  }
+}, [setPricePredict]); // No need to include postToServer in the dependency array since it's already defined outside of useCallback
 
   useEffect(() => {
     const defaultIcon = L.icon({
@@ -143,28 +177,6 @@ const Map = ({ coordinates, setAddress, setFinalAddress, setDialogFields, setDia
       updateRoute();
     }
   }, [coordinates, updateRoute]);
-
-  const postToServer = async (data) => {
-    const url = 'http://15.228.36.187:3000';
-    setLoading(true);
-    setPricePredict(null);
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-      const responseData = await response.json();
-      return responseData;
-    } catch (error) {
-      console.error('Erro ao fazer o POST:', error.message);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getAddress = async (lat, lng) => {
     const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`;
