@@ -43,7 +43,8 @@ const Map = ({ coordinates, setAddress, setFinalAddress, setDialogFields, setDia
       console.log('Resposta do servidor:', responseData);
       return responseData; // Retorna os dados da resposta
     } catch (error) {
-      console.error('Erro ao fazer o POST:', error.message);
+      console.error('Erro ao fazer o POST:', error);
+
       throw error;
     } finally {
       setLoading(false);

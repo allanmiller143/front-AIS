@@ -59,7 +59,7 @@ function App() {
           CalcUber
         </Typography>
         <Typography variant="subtitle1" component="div">
-          Encontre o caminho ideal para seu destino
+          Saiba o preço da sua corrida
         </Typography>
       </Box>
 
