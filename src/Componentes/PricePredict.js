@@ -34,7 +34,7 @@ function PricePredict({pricePredict,loading}) {
               fontWeight="bold"
               sx={{ color: '#1976D2' }}
             >
-              ${pricePredict.toFixed(2)} Dolares
+              ${pricePredict} Dolares
             </Typography>
           )
         }

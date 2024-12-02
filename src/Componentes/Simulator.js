@@ -79,7 +79,7 @@ function Simulator({coordinates, setCoordinates, address, setAddress, finalAddre
 
       const responseData = await response.json();
       console.log('Resposta do servidor:', responseData);
-      setPricePredict(responseData.predictedFare); // Atualiza o estado com o valor da previsão de preço
+      setPricePredict(responseData.fareAmount); // Atualiza o estado com o valor da previsão de preço
     } catch (error) {
       console.error('Erro ao fazer o POST:', error.message);
     } finally {

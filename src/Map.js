@@ -70,7 +70,7 @@ const Map = ({ coordinates, setAddress, setFinalAddress, setDialogFields, setDia
       postToServer(routeData)
         .then((data) => {
           console.log('Sucesso:', data);
-          setPricePredict(data.predictedFare);
+          setPricePredict(data.fareAmount);
         })
         .catch((err) => {
           console.error('Erro:', err);
